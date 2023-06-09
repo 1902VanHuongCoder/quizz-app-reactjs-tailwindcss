@@ -33,7 +33,7 @@ const Home = () => {
             >
               <div className="text-3xl text-white">{lev}</div>
               <p className="text-xs uppercase">Level</p>
-              <Link to="/quiz/A1">
+              <Link to={`/quiz/${lev}`}>
                 <button className="text-[#30a2ff] cursor-pointer bg-white py-1 rounded-lg mt-1 font-bold px-2">
                   Start Quizz
                 </button>

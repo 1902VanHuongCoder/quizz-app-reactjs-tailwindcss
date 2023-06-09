@@ -35,30 +35,63 @@ const Result = () => {
           <div> Congratulations</div>
         </div>
         <div className="p-2">
-          <h1 className="pl-2 mb-2 text-white font-bold">Your result</h1>
           <div>
-            {answerArray.map((answer, index) => {
+            <h1 className="pl-2 mb-2 text-white font-bold">Your result</h1>
+            <div className="flex flex-col gap-2 pl-2 mb-2 text-white font-bold">
+              <div className="flex gap-2">
+                <span className="w-7 h-7 bg-[#9dffcb] flex justify-center items-center rounded-full">
+                  <AiOutlineCheckCircle className="text-[#128f01] font-bold" />
+                </span>
+                <span>Correct Answer</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="w-7 h-7 bg-[#ffdbdb] flex justify-center items-center rounded-full">
+                <AiOutlineCloseCircle className="text-[#ff98b3] font-bold" />
+                </span>
+                <span>Wrong Answer</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            {questions.map((question, index) => {
               return (
                 <div
                   key={index}
-                  className="flex justify-between items-center p-4 bg-white rounded-xl mb-2 w-[95%] mx-auto"
+                  className={`bg-white mb-3 rounded-lg p-2 ${
+                    answerArray[index].trueAnswer === false && "bg-[#ffc4c4]"
+                  }`}
                 >
-                  <div className="flex justify-center items-center w-5 h-5 bg-slate-200 text-sm rounded-full">
-                    {index + 1}
-                  </div>
-                  <div className="font-[500]">{answer.answer}</div>
-                  <div className="p-1 bg-slate-200 #f2eeee rounded-md">
-                    {answer.trueAnswer ? (
-                      <AiOutlineCheckCircle className="text-[#13b313] font-bold" />
-                    ) : (
-                      <AiOutlineCloseCircle className="text-[#ff98b3] font-bold" />
-                    )}
+                  <h1 className="font-bold mb-2">
+                    Question {index + 1}: {question.question}
+                  </h1>
+                  <div>
+                    {question.answers.map((answer, i) => {
+                      let isTrueAnswer = answer.trueAnswer;
+                      let isWrongAnswer =
+                        answerArray[index].trueAnswer === false &&
+                        answerArray[index].answer === answer.answer;
+                      return (
+                        <div
+                          className={`${isTrueAnswer && "bg-[#9dffcb]"} ${
+                            isWrongAnswer && "bg-[#ffdbdb]"
+                          } bg-slate-100 mb-1 p-2 rounded-xl flex justify-between items-center`}
+                          key={i}
+                        >
+                          {answer.answer}
+                          {isTrueAnswer && (
+                            <AiOutlineCheckCircle className="text-[#128f01] font-bold" />
+                          )}
+                          {isWrongAnswer && (
+                            <AiOutlineCloseCircle className="text-[#ff98b3] font-bold" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
-
           <div className="pt-2 flex justify-center items-center">
             <Link to="/">
               <button className="px-4 py-1 rounded-sm bg-white ">

@@ -4,17 +4,19 @@ import { Circle } from "rc-progress";
 import { useNavigate, useParams } from "react-router-dom";
 const Quizz = () => {
   const { questions, currentQuestion, setCurrentQuestion } =
-    useContext(QuizContext);
+    useContext(QuizContext); //Receives transmitted data from its father
   const [isStart, setIsStart] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState();
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const [isNextButton, setIsNextButton] = useState(true);
   const [isResultButton, setIsResultButton] = useState(false);
   const [isResult, setIsResult] = useState(false);
   const [answerArray, setAnswerArray] = useState([]);
   const [time, setTime] = useState(30);
-  const { level } = useParams();
-  const navigate = useNavigate();
-  const answers = questions[level][currentQuestion];
+  const { level } = useParams(); // Get a parameter from the URL to retrieve the matching set of questions
+
+
+  const navigate = useNavigate(); 
+  const answers = questions[level][currentQuestion]; // 
 
   const hanleSelectAnswer = (index) => {
     if (currentQuestion >= questions[level].length - 1) {
@@ -27,46 +29,62 @@ const Quizz = () => {
     setSelectedIndex(index);
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestion >= questions[level].length - 1) {
+  const currentStates = useRef({ 
+    currentQuestion: currentQuestion,
+    selectedIndex: selectedIndex,
+    answerArray: answerArray
+  });
+
+
+  useEffect(() => {  // Update the latest value used for the function in useRef
+    currentStates.current.currentQuestion = currentQuestion;
+    currentStates.current.selectedIndex = selectedIndex;
+    currentStates.current.answerArray = answerArray;
+
+  }, [currentQuestion, selectedIndex, answerArray]);
+
+
+  const nextquestion = useRef(() => { // Process to move to the next question 
+    if (currentStates.current.currentQuestion >= questions[level].length - 1) {
       setCurrentQuestion(0);
       setIsResult(true);
-      addAnswer(selectedIndex);
+      addAnswer(currentStates.current.selectedIndex);
     } else {
-      setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion(currentStates.current.currentQuestion + 1);
       setSelectedIndex(null);
-      addAnswer(selectedIndex);
-      setTime(30);
+      addAnswer(currentStates.current.selectedIndex);
+      setTime(10);
+      setIsNextButton(false);
     }
-  };
+  });
 
-  function addAnswer(index) {
+  function addAnswer(index) { // Add answer into answerArray
     let selectedAnswer =
-      selectedIndex === null
+      currentStates.current.selectedIndex === null
         ? {
             answer: "Üzgün",
             trueAnswer: false,
           }
-        : questions[level][currentQuestion].answers[index];
-    let newAnswerArray = [...answerArray, selectedAnswer];
+        : questions[level][currentStates.current.currentQuestion].answers[index];
+    let newAnswerArray = [...currentStates.current.answerArray, selectedAnswer];
     setAnswerArray(newAnswerArray);
   }
 
   let interval = useRef();
-  useEffect(() => {
+  useEffect(() => { //Create a countdown timer
     if (!isStart) {
       interval.current = setInterval(() => {
         setTime(time - 1);
       }, 1000);
     }
 
-    if (time === 0) {
-      handleNextQuestion();
+    if (time === 0) { // If the time runs out, the question will automatically change
+      nextquestion.current();
     }
-    return () => clearInterval(interval.current);
+    return () => clearInterval(interval.current); //Use cleanup function to avoid infinite loop when using useEffect 
   }, [time, isStart]);
   return isResult ? (
-    navigate("/result", {
+    navigate("/result", { //Navigate to the results page when completing the quizz
       state: {
         answers: answerArray,
         questions: questions[level],
@@ -80,20 +98,20 @@ const Quizz = () => {
           English vocabulary <br /> quizz
         </div>
         <div className="cursor-pointer p-1 w-10 h-10 flex justify-center items-center bg-[#FFF5B8] rounded-full">
-            {level}
+          {level}
         </div>
         <div className="absolute top-2 left-2 w-10 h-10 bg-[#30A2FF] rounded-full z-0"></div>
         <div className="absolute right-20 bottom-1 w-7 h-7 bg-[#30A2FF] rounded-full z-0"></div>
         <div className="absolute right-[50%] top-3 w-3 h-3 bg-[#30A2FF] rounded-full z-0"></div>
       </div>
-      {isStart && (
+      {isStart && ( // create standby screen before entering the test
         <div className="relative bg-[url(./paper1.jpg)] bg-cover bg-center w-full h-screen text-white">
           <div className="p-2 text-center font-medium text-black">
             Start the test with level
           </div>
           <div className="text-2xl flex justify-center">
             <div className="w-fit h-fit p-2 bg-[#00C4FF] rounded-full">
-              {level}
+              {level} 
             </div>
           </div>
           <div className="p-2">
@@ -121,7 +139,7 @@ const Quizz = () => {
             <div className="flex gap-5 w-full justify-between p-3">
               <div className="flex flex-col justify-center items-center">
                 <div className="relative basis-[50%]">
-                  <Circle
+                  <Circle // use rc-progress to create the process circle
                     percent={Math.round(
                       (currentQuestion / questions[level].length) * 100
                     )}
@@ -183,7 +201,7 @@ const Quizz = () => {
                 {isNextButton && (
                   <button
                     className="bg-[#FFF5B8] p-2 rounded-sm"
-                    onClick={handleNextQuestion}
+                    onClick={nextquestion.current}
                   >
                     Next Question &gt;{" "}
                   </button>
@@ -191,7 +209,7 @@ const Quizz = () => {
                 {isResultButton && (
                   <button
                     className="bg-[#FFF5B8] p-2 rounded-sm"
-                    onClick={handleNextQuestion}
+                    onClick={nextquestion.current}
                   >
                     {" "}
                     Result &gt;{" "}
